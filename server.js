@@ -5,10 +5,16 @@ const db = require('./db');
 
 const app = express();
 const sessions = new Map();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 
 app.use(express.json()); /* turns json to js */ 
-app.use(express.static(__dirname)); /*so html css can work in browser*/ 
+// Publish browser assets only, never backend source or database files.
+for (const directory of ['css', 'js', 'assets']) {
+  app.use(`/${directory}`, express.static(path.join(__dirname, directory)));
+}
+for (const page of ['index', 'jobs', 'job-detail', 'login', 'candidate-dashboard', 'admin', 'super-admin']) {
+  app.get(`/${page}.html`, (req, res) => res.sendFile(path.join(__dirname, `${page}.html`)));
+}
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
